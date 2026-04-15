@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patient Observation Tracker</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <!-- ══════════════════════════════════════════════════════════
+     NAVIGATION
+══════════════════════════════════════════════════════════ -->
+    <nav>
+      <div class="brand">Patient Observation Tracker</div>
+      <a id="nav-patients" onclick="showPage('patients')">Patients</a>
+      <a id="nav-catalogue" onclick="showPage('catalogue')">Catalogue</a>
+      <a id="nav-logs" onclick="showPage('logs')">Logs</a>
+    </nav>
+
+    <main>
+      <!-- ══════════════════════════════════════════════════════
+       PAGE: PATIENTS LIST
+  ══════════════════════════════════════════════════════ -->
+      <div id="page-patients" class="page active">
+        <h1>Patients</h1>
+        <div class="grid2">
+          <div>
+            <div id="patients-alert"></div>
+            <div class="card">
+              <h2>All Patients</h2>
+              <div id="patients-table-container">
+                <p class="empty">Loading…</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Add New Patient</h2>
+            <div class="form-row">
+              <label>Full Name *</label>
+              <input id="p-name" placeholder="Jane Doe" />
+            </div>
+            <div class="form-row">
+              <label>Date of Birth</label>
+              <input id="p-dob" type="date" />
+            </div>
+            <div class="form-row">
+              <label>Note</label>
+              <textarea
+                id="p-note"
+                rows="3"
+                placeholder="Clinical notes…"
+              ></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="handleCreatePatient()">
+              Create Patient
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════
+       PAGE: PATIENT DETAIL
+  ══════════════════════════════════════════════════════ -->
+      <div id="page-detail" class="page">
+        <span class="back-link" onclick="showPage('patients')"
+          >← Back to Patients</span
+        >
+
+        <div class="card" style="margin-bottom: 20px">
+          <div class="patient-name" id="detail-name"></div>
+          <div class="patient-meta" id="detail-meta"></div>
+        </div>
+
+        <div id="detail-alert"></div>
+
+        <!-- Observations -->
+        <div class="card">
+          <div class="section-header">
+            <h2>Observations</h2>
+            <button
+              class="btn btn-success btn-sm"
+              onclick="handleEvaluateRules()"
+            >
+              ⚡ Evaluate Rules
+            </button>
+          </div>
+          <div
+            id="inferences-box"
+            style="display: none; margin-bottom: 14px"
+          ></div>
+          <div id="observations-table-container">
+            <p class="empty">No observations yet.</p>
+          </div>
+        </div>
+
+        <!-- Record forms -->
+        <div class="grid2">
+          <!-- Measurement -->
+          <div class="card">
+            <h2>Record Measurement</h2>
+            <div class="form-row">
+              <label>Phenomenon Type (Quantitative)</label>
+              <select id="m-phentype"></select>
+            </div>
+            <div class="form-row">
+              <label>Amount *</label>
+              <input
+                id="m-amount"
+                type="number"
+                step="any"
+                placeholder="e.g. 37.5"
+              />
+            </div>
+            <div class="form-row">
+              <label>Unit *</label>
+              <input id="m-unit" placeholder="e.g. °C" />
+            </div>
+            <div class="form-row">
+              <label
+                >Applicability Time
+                <span style="color: var(--muted); font-weight: 400"
+                  >(optional, defaults to now)</span
+                ></label
+              >
+              <input id="m-time" type="datetime-local" />
+            </div>
+            <div class="form-row">
+              <label
+                >Protocol
+                <span style="color: var(--muted); font-weight: 400"
+                  >(optional)</span
+                ></label
+              >
+              <select id="m-protocol">
+                <option value="">— none —</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="handleRecordMeasurement()">
+              Save Measurement
+            </button>
+          </div>
+
+          <!-- Category Observation -->
+          <div class="card">
+            <h2>Record Category Observation</h2>
+            <div class="form-row">
+              <label>Phenomenon Type (Qualitative)</label>
+              <select
+                id="c-phentype"
+                onchange="loadPhenomenaForSelectedType()"
+              ></select>
+            </div>
+            <div class="form-row">
+              <label>Phenomenon</label>
+              <select id="c-phenomenon"></select>
+            </div>
+            <div class="form-row">
+              <label>Presence</label>
+              <select id="c-presence">
+                <option value="PRESENT">PRESENT</option>
+                <option value="ABSENT">ABSENT</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label
+                >Applicability Time
+                <span style="color: var(--muted); font-weight: 400"
+                  >(optional, defaults to now)</span
+                ></label
+              >
+              <input id="c-time" type="datetime-local" />
+            </div>
+            <div class="form-row">
+              <label
+                >Protocol
+                <span style="color: var(--muted); font-weight: 400"
+                  >(optional)</span
+                ></label
+              >
+              <select id="c-protocol">
+                <option value="">— none —</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="handleRecordCategory()">
+              Save Observation
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════
+       PAGE: CATALOGUE
+  ══════════════════════════════════════════════════════ -->
+      <div id="page-catalogue" class="page">
+        <h1>Catalogue</h1>
+
+        <div class="tabs">
+          <div class="tab active" onclick="switchCatTab('phentypes', this)">
+            Phenomenon Types
+          </div>
+          <div class="tab" onclick="switchCatTab('protocols', this)">
+            Protocols
+          </div>
+          <div class="tab" onclick="switchCatTab('rules', this)">
+            Diagnostic Rules
+          </div>
+        </div>
+
+        <!-- ── Phenomenon Types tab ── -->
+        <div id="cat-phentypes">
+          <div id="pt-alert"></div>
+          <div class="grid2">
+            <!-- Left: list -->
+            <div class="card">
+              <h2>All Phenomenon Types</h2>
+              <div id="pt-list-container"><p class="empty">Loading…</p></div>
+            </div>
+
+            <!-- Right: unified create form + add phenomenon to existing -->
+            <div>
+              <!-- Create form -->
+              <div class="card">
+                <h2>Add Phenomenon Type</h2>
+
+                <div class="form-row">
+                  <label>Name *</label>
+                  <input id="pt-name" placeholder="e.g. Body Temperature" />
+                </div>
+
+                <div class="form-row">
+                  <label>Kind *</label>
+                  <select id="pt-kind" onchange="onPtKindChange()">
+                    <option value="QUANTITATIVE">
+                      QUANTITATIVE — numeric measurements
+                    </option>
+                    <option value="QUALITATIVE">
+                      QUALITATIVE — named categories
+                    </option>
+                  </select>
+                </div>
+
+                <!-- Shown only for QUANTITATIVE -->
+                <div id="pt-units-row" class="form-row">
+                  <label
+                    >Allowed Units *
+                    <span style="color: var(--muted); font-weight: 400"
+                      >(comma-separated)</span
+                    >
+                  </label>
+                  <input id="pt-units" placeholder="e.g. °C,°F,K" />
+                </div>
+
+                <!-- Shown only for QUALITATIVE -->
+                <div
+                  id="pt-phenomena-row"
+                  class="form-row"
+                  style="display: none"
+                >
+                  <label
+                    >First Phenomenon
+                    <span style="color: var(--muted); font-weight: 400"
+                      >(optional, e.g. Blood Group A)</span
+                    >
+                  </label>
+                  <input
+                    id="pt-first-phenomenon"
+                    placeholder="e.g. Blood Group A"
+                  />
+                  <small style="color: var(--muted); font-size: 0.78rem">
+                    You can add more phenomena below after saving.
+                  </small>
+                </div>
+
+                <button
+                  class="btn btn-primary"
+                  onclick="handleCreatePhenomenonType()"
+                >
+                  Add Phenomenon Type
+                </button>
+              </div>
+
+              <!-- Add phenomenon to existing qualitative type -->
+              <div class="card">
+                <h2>Add Phenomenon to Existing Type</h2>
+                <p
+                  style="
+                    font-size: 0.85rem;
+                    color: var(--muted);
+                    margin-bottom: 14px;
+                  "
+                >
+                  Use this to add more phenomena to an already-created
+                  qualitative type.
+                </p>
+                <div class="form-row">
+                  <label>Qualitative Type</label>
+                  <select id="existing-qual-select">
+                    <option value="">— no qualitative types yet —</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label>Phenomenon Name *</label>
+                  <input id="extra-ph-name" placeholder="e.g. Blood Group B" />
+                </div>
+                <button class="btn btn-primary" onclick="handleAddPhenomenon()">
+                  Add Phenomenon
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Protocols tab ── -->
+        <div id="cat-protocols" style="display: none">
+          <div id="proto-alert"></div>
+          <div class="grid2">
+            <div class="card">
+              <h2>All Protocols</h2>
+              <div id="proto-list-container"><p class="empty">Loading…</p></div>
+            </div>
+
+            <div class="card">
+              <h2>Add Protocol</h2>
+              <div class="form-row">
+                <label>Name *</label>
+                <input id="pr-name" placeholder="e.g. WHO Standard" />
+              </div>
+              <div class="form-row">
+                <label
+                  >Description
+                  <span style="color: var(--muted); font-weight: 400"
+                    >(optional)</span
+                  ></label
+                >
+                <textarea
+                  id="pr-desc"
+                  rows="3"
+                  placeholder="Describe the protocol…"
+                ></textarea>
+              </div>
+              <div class="form-row">
+                <label>Accuracy Rating *</label>
+                <select id="pr-rating">
+                  <option value="HIGH">HIGH</option>
+                  <option value="MEDIUM">MEDIUM</option>
+                  <option value="LOW">LOW</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" onclick="handleCreateProtocol()">
+                Add Protocol
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Diagnostic Rules tab ── -->
+        <div id="cat-rules" style="display: none">
+          <div id="rules-alert"></div>
+          <div class="grid2">
+            <div class="card">
+              <h2>All Diagnostic Rules</h2>
+              <div id="rules-list-container"><p class="empty">Loading…</p></div>
+            </div>
+
+            <div class="card">
+              <h2>Add Diagnostic Rule</h2>
+              <p
+                style="
+                  font-size: 0.85rem;
+                  color: var(--muted);
+                  margin-bottom: 14px;
+                "
+              >
+                A rule fires when <strong>all</strong> listed PhenomenonType IDs
+                have active observations for the patient, inferring the product
+                concept.
+              </p>
+              <div class="form-row">
+                <label>Rule Name *</label>
+                <input id="rl-name" placeholder="e.g. Diabetes Screening" />
+              </div>
+              <div class="form-row">
+                <label
+                  >Argument Concept IDs *
+                  <span style="color: var(--muted); font-weight: 400"
+                    >(comma-separated PhenomenonType IDs, e.g. 1,2)</span
+                  >
+                </label>
+                <input id="rl-args" placeholder="e.g. 1,2" />
+              </div>
+              <div class="form-row">
+                <label>Inferred Product Concept *</label>
+                <input id="rl-product" placeholder="e.g. Diabetes Risk" />
+              </div>
+              <button class="btn btn-primary" onclick="handleCreateRule()">
+                Add Rule
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════
+       PAGE: LOGS
+  ══════════════════════════════════════════════════════ -->
+      <div id="page-logs" class="page">
+        <h1>Logs</h1>
+        <div class="grid2">
+          <div class="card">
+            <h2>Command Log</h2>
+            <div id="command-log-container"><p class="empty">Loading…</p></div>
+          </div>
+
+          <div class="card">
+            <h2>Audit Log</h2>
+            <div id="audit-log-container"><p class="empty">Loading…</p></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Scripts in dependency order — plain <script src>, no type="module" -->
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/patients.js"></script>
+    <script src="js/detail.js"></script>
+    <script src="js/catalogue.js"></script>
+    <script src="js/logs.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
