@@ -1,13 +1,13 @@
 async function loadPatients() {
-  const container = document.getElementById("patients-table-container");
+  var container = document.getElementById("patients-table-container");
   container.innerHTML = '<p class="empty">Loading…</p>';
   try {
-    const patients = await getPatients();
+    var patients = await getPatients();
     if (!patients.length) {
-      container.innerHTML = '<p class="empty">No patients yet. Add one →</p>';
+      container.innerHTML = '<p class="empty">No patients registered yet.</p>';
       return;
     }
-    let rows = "";
+    var rows = "";
     patients.forEach(function (p) {
       rows +=
         "<tr>" +
@@ -30,7 +30,7 @@ async function loadPatients() {
     });
     container.innerHTML =
       "<table>" +
-      "<thead><tr><th>#</th><th>Name</th><th>DOB</th><th>Note</th><th></th></tr></thead>" +
+      "<thead><tr><th>#</th><th>Name</th><th>Date of Birth</th><th>Note</th><th></th></tr></thead>" +
       "<tbody>" +
       rows +
       "</tbody>" +
@@ -42,12 +42,20 @@ async function loadPatients() {
 }
 
 async function handleCreatePatient() {
-  const fullName = document.getElementById("p-name").value.trim();
-  const dateOfBirth = document.getElementById("p-dob").value || null;
-  const note = document.getElementById("p-note").value.trim();
+  var fullName = document.getElementById("p-name").value.trim();
+  var dateOfBirth = document.getElementById("p-dob").value;
+  var note = document.getElementById("p-note").value.trim();
 
   if (!fullName) {
     showAlert("patients-alert", "Full name is required.");
+    return;
+  }
+  if (!dateOfBirth) {
+    showAlert("patients-alert", "Date of birth is required.");
+    return;
+  }
+  if (!note) {
+    showAlert("patients-alert", "Note is required.");
     return;
   }
 

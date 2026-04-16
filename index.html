@@ -5,6 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Patient Observation Tracker</title>
     <link rel="stylesheet" href="css/styles.css" />
+    <style>
+      /* Role switcher in nav */
+      .role-switcher {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-right: 4px;
+      }
+      .role-switcher label {
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 0.82rem;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .role-switcher select {
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        outline: none;
+      }
+      .role-switcher select option {
+        background: #1e3a5f;
+        color: #fff;
+      }
+      .role-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 99px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #fff;
+        background: #2563eb;
+      }
+      /* Mark required fields */
+      .required-star {
+        color: #dc2626;
+        margin-left: 2px;
+      }
+    </style>
   </head>
   <body>
     <!-- ══════════════════════════════════════════════════════════
@@ -15,6 +60,16 @@
       <a id="nav-patients" onclick="showPage('patients')">Patients</a>
       <a id="nav-catalogue" onclick="showPage('catalogue')">Catalogue</a>
       <a id="nav-logs" onclick="showPage('logs')">Logs</a>
+
+      <!-- Role switcher -->
+      <div class="role-switcher">
+        <label for="role-select">Viewing as:</label>
+        <select id="role-select" onchange="onRoleChange()">
+          <option value="staff">Staff</option>
+          <option value="patient">Patient</option>
+        </select>
+        <span class="role-badge" id="role-badge">Staff</span>
+      </div>
     </nav>
 
     <main>
@@ -24,6 +79,7 @@
       <div id="page-patients" class="page active">
         <h1>Patients</h1>
         <div class="grid2">
+          <!-- Left: patient list (visible to all roles) -->
           <div>
             <div id="patients-alert"></div>
             <div class="card">
@@ -34,18 +90,19 @@
             </div>
           </div>
 
-          <div class="card">
+          <!-- Right: create form — STAFF ONLY (hidden for patient role) -->
+          <div class="card" id="create-patient-card">
             <h2>Add New Patient</h2>
             <div class="form-row">
-              <label>Full Name *</label>
+              <label>Full Name <span class="required-star">*</span></label>
               <input id="p-name" placeholder="Jane Doe" />
             </div>
             <div class="form-row">
-              <label>Date of Birth</label>
+              <label>Date of Birth <span class="required-star">*</span></label>
               <input id="p-dob" type="date" />
             </div>
             <div class="form-row">
-              <label>Note</label>
+              <label>Note <span class="required-star">*</span></label>
               <textarea
                 id="p-note"
                 rows="3"
@@ -74,11 +131,13 @@
 
         <div id="detail-alert"></div>
 
-        <!-- Observations -->
+        <!-- Observations (visible to all) -->
         <div class="card">
           <div class="section-header">
             <h2>Observations</h2>
+            <!-- STAFF ONLY -->
             <button
+              id="evaluate-btn"
               class="btn btn-success btn-sm"
               onclick="handleEvaluateRules()"
             >
@@ -94,8 +153,8 @@
           </div>
         </div>
 
-        <!-- Record forms -->
-        <div class="grid2">
+        <!-- Record forms — STAFF ONLY -->
+        <div id="record-forms" class="grid2">
           <!-- Measurement -->
           <div class="card">
             <h2>Record Measurement</h2>
@@ -104,7 +163,7 @@
               <select id="m-phentype"></select>
             </div>
             <div class="form-row">
-              <label>Amount *</label>
+              <label>Amount <span class="required-star">*</span></label>
               <input
                 id="m-amount"
                 type="number"
@@ -113,14 +172,14 @@
               />
             </div>
             <div class="form-row">
-              <label>Unit *</label>
+              <label>Unit <span class="required-star">*</span></label>
               <input id="m-unit" placeholder="e.g. °C" />
             </div>
             <div class="form-row">
               <label
                 >Applicability Time
                 <span style="color: var(--muted); font-weight: 400"
-                  >(optional, defaults to now)</span
+                  >(optional)</span
                 ></label
               >
               <input id="m-time" type="datetime-local" />
@@ -166,7 +225,7 @@
               <label
                 >Applicability Time
                 <span style="color: var(--muted); font-weight: 400"
-                  >(optional, defaults to now)</span
+                  >(optional)</span
                 ></label
               >
               <input id="c-time" type="datetime-local" />
@@ -190,10 +249,16 @@
       </div>
 
       <!-- ══════════════════════════════════════════════════════
-       PAGE: CATALOGUE
+       PAGE: CATALOGUE  (STAFF ONLY)
   ══════════════════════════════════════════════════════ -->
       <div id="page-catalogue" class="page">
-        <h1>Catalogue</h1>
+        <h1>
+          Catalogue
+          <span
+            style="font-size: 0.85rem; color: var(--muted); font-weight: 400"
+            >(Staff only)</span
+          >
+        </h1>
 
         <div class="tabs">
           <div class="tab active" onclick="switchCatTab('phentypes', this)">
@@ -207,29 +272,26 @@
           </div>
         </div>
 
-        <!-- ── Phenomenon Types tab ── -->
+        <div id="cat-alert"></div>
+
+        <!-- Phenomenon Types tab -->
         <div id="cat-phentypes">
           <div id="pt-alert"></div>
           <div class="grid2">
-            <!-- Left: list -->
             <div class="card">
               <h2>All Phenomenon Types</h2>
               <div id="pt-list-container"><p class="empty">Loading…</p></div>
             </div>
 
-            <!-- Right: unified create form + add phenomenon to existing -->
             <div>
-              <!-- Create form -->
               <div class="card">
                 <h2>Add Phenomenon Type</h2>
-
                 <div class="form-row">
-                  <label>Name *</label>
+                  <label>Name <span class="required-star">*</span></label>
                   <input id="pt-name" placeholder="e.g. Body Temperature" />
                 </div>
-
                 <div class="form-row">
-                  <label>Kind *</label>
+                  <label>Kind <span class="required-star">*</span></label>
                   <select id="pt-kind" onchange="onPtKindChange()">
                     <option value="QUANTITATIVE">
                       QUANTITATIVE — numeric measurements
@@ -239,19 +301,15 @@
                     </option>
                   </select>
                 </div>
-
-                <!-- Shown only for QUANTITATIVE -->
                 <div id="pt-units-row" class="form-row">
                   <label
-                    >Allowed Units *
+                    >Allowed Units <span class="required-star">*</span>
                     <span style="color: var(--muted); font-weight: 400"
                       >(comma-separated)</span
                     >
                   </label>
                   <input id="pt-units" placeholder="e.g. °C,°F,K" />
                 </div>
-
-                <!-- Shown only for QUALITATIVE -->
                 <div
                   id="pt-phenomena-row"
                   class="form-row"
@@ -260,18 +318,17 @@
                   <label
                     >First Phenomenon
                     <span style="color: var(--muted); font-weight: 400"
-                      >(optional, e.g. Blood Group A)</span
+                      >(optional)</span
                     >
                   </label>
                   <input
                     id="pt-first-phenomenon"
                     placeholder="e.g. Blood Group A"
                   />
-                  <small style="color: var(--muted); font-size: 0.78rem">
-                    You can add more phenomena below after saving.
-                  </small>
+                  <small style="color: var(--muted); font-size: 0.78rem"
+                    >Add more phenomena in the card below after saving.</small
+                  >
                 </div>
-
                 <button
                   class="btn btn-primary"
                   onclick="handleCreatePhenomenonType()"
@@ -280,7 +337,6 @@
                 </button>
               </div>
 
-              <!-- Add phenomenon to existing qualitative type -->
               <div class="card">
                 <h2>Add Phenomenon to Existing Type</h2>
                 <p
@@ -290,8 +346,7 @@
                     margin-bottom: 14px;
                   "
                 >
-                  Use this to add more phenomena to an already-created
-                  qualitative type.
+                  Add more phenomena to an already-created qualitative type.
                 </p>
                 <div class="form-row">
                   <label>Qualitative Type</label>
@@ -300,7 +355,9 @@
                   </select>
                 </div>
                 <div class="form-row">
-                  <label>Phenomenon Name *</label>
+                  <label
+                    >Phenomenon Name <span class="required-star">*</span></label
+                  >
                   <input id="extra-ph-name" placeholder="e.g. Blood Group B" />
                 </div>
                 <button class="btn btn-primary" onclick="handleAddPhenomenon()">
@@ -311,7 +368,7 @@
           </div>
         </div>
 
-        <!-- ── Protocols tab ── -->
+        <!-- Protocols tab -->
         <div id="cat-protocols" style="display: none">
           <div id="proto-alert"></div>
           <div class="grid2">
@@ -323,7 +380,7 @@
             <div class="card">
               <h2>Add Protocol</h2>
               <div class="form-row">
-                <label>Name *</label>
+                <label>Name <span class="required-star">*</span></label>
                 <input id="pr-name" placeholder="e.g. WHO Standard" />
               </div>
               <div class="form-row">
@@ -340,7 +397,9 @@
                 ></textarea>
               </div>
               <div class="form-row">
-                <label>Accuracy Rating *</label>
+                <label
+                  >Accuracy Rating <span class="required-star">*</span></label
+                >
                 <select id="pr-rating">
                   <option value="HIGH">HIGH</option>
                   <option value="MEDIUM">MEDIUM</option>
@@ -354,7 +413,7 @@
           </div>
         </div>
 
-        <!-- ── Diagnostic Rules tab ── -->
+        <!-- Diagnostic Rules tab -->
         <div id="cat-rules" style="display: none">
           <div id="rules-alert"></div>
           <div class="grid2">
@@ -377,20 +436,23 @@
                 concept.
               </p>
               <div class="form-row">
-                <label>Rule Name *</label>
+                <label>Rule Name <span class="required-star">*</span></label>
                 <input id="rl-name" placeholder="e.g. Diabetes Screening" />
               </div>
               <div class="form-row">
                 <label
-                  >Argument Concept IDs *
+                  >Argument Concept IDs <span class="required-star">*</span>
                   <span style="color: var(--muted); font-weight: 400"
-                    >(comma-separated PhenomenonType IDs, e.g. 1,2)</span
+                    >(comma-separated PhenomenonType IDs)</span
                   >
                 </label>
                 <input id="rl-args" placeholder="e.g. 1,2" />
               </div>
               <div class="form-row">
-                <label>Inferred Product Concept *</label>
+                <label
+                  >Inferred Product Concept
+                  <span class="required-star">*</span></label
+                >
                 <input id="rl-product" placeholder="e.g. Diabetes Risk" />
               </div>
               <button class="btn btn-primary" onclick="handleCreateRule()">
@@ -402,10 +464,16 @@
       </div>
 
       <!-- ══════════════════════════════════════════════════════
-       PAGE: LOGS
+       PAGE: LOGS  (STAFF ONLY)
   ══════════════════════════════════════════════════════ -->
       <div id="page-logs" class="page">
-        <h1>Logs</h1>
+        <h1>
+          Logs
+          <span
+            style="font-size: 0.85rem; color: var(--muted); font-weight: 400"
+            >(Staff only)</span
+          >
+        </h1>
         <div class="grid2">
           <div class="card">
             <h2>Command Log</h2>
@@ -420,7 +488,7 @@
       </div>
     </main>
 
-    <!-- Scripts in dependency order — plain <script src>, no type="module" -->
+    <!-- Scripts in dependency order -->
     <script src="js/api.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/patients.js"></script>
