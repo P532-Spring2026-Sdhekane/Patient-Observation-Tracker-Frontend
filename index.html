@@ -23,6 +23,18 @@
           <option value="staff">Staff</option>
           <option value="patient">Patient</option>
         </select>
+
+        <!-- Patient picker — only visible when role = patient -->
+        <div
+          id="patient-picker-wrap"
+          style="display: none; align-items: center; gap: 8px"
+        >
+          <label for="patient-picker" style="margin-bottom: 0">I am:</label>
+          <select id="patient-picker" onchange="onPatientPicked()">
+            <option value="">— select your name —</option>
+          </select>
+        </div>
+
         <span class="role-badge" id="role-badge">Staff</span>
       </div>
     </nav>
@@ -34,7 +46,7 @@
       <div id="page-patients" class="page active">
         <h1>Patients</h1>
         <div class="grid2">
-          <!-- Left: patient list (visible to all roles) -->
+          <!-- Left: list (all roles) -->
           <div>
             <div id="patients-alert"></div>
             <div class="card">
@@ -45,7 +57,7 @@
             </div>
           </div>
 
-          <!-- Right: create form — STAFF ONLY (hidden for patient role) -->
+          <!-- Right: create form (staff only) -->
           <div class="card" id="create-patient-card">
             <h2>Add New Patient</h2>
             <div class="form-row">
@@ -86,11 +98,11 @@
 
         <div id="detail-alert"></div>
 
-        <!-- Observations (visible to all) -->
+        <!-- Observations (all roles) -->
         <div class="card">
           <div class="section-header">
             <h2>Observations</h2>
-            <!-- STAFF ONLY -->
+            <!-- Staff only -->
             <button
               id="evaluate-btn"
               class="btn btn-success btn-sm"
@@ -108,9 +120,8 @@
           </div>
         </div>
 
-        <!-- Record forms — STAFF ONLY -->
+        <!-- Record forms (staff only) -->
         <div id="record-forms" class="grid2">
-          <!-- Measurement -->
           <div class="card">
             <h2>Record Measurement</h2>
             <div class="form-row">
@@ -155,7 +166,6 @@
             </button>
           </div>
 
-          <!-- Category Observation -->
           <div class="card">
             <h2>Record Category Observation</h2>
             <div class="form-row">
@@ -204,7 +214,7 @@
       </div>
 
       <!-- ══════════════════════════════════════════════════════
-       PAGE: CATALOGUE  (STAFF ONLY)
+       PAGE: CATALOGUE (staff only)
   ══════════════════════════════════════════════════════ -->
       <div id="page-catalogue" class="page">
         <h1>
@@ -227,8 +237,6 @@
           </div>
         </div>
 
-        <div id="cat-alert"></div>
-
         <!-- Phenomenon Types tab -->
         <div id="cat-phentypes">
           <div id="pt-alert"></div>
@@ -237,7 +245,6 @@
               <h2>All Phenomenon Types</h2>
               <div id="pt-list-container"><p class="empty">Loading…</p></div>
             </div>
-
             <div>
               <div class="card">
                 <h2>Add Phenomenon Type</h2>
@@ -274,14 +281,14 @@
                     >First Phenomenon
                     <span style="color: var(--muted); font-weight: 400"
                       >(optional)</span
-                    >
-                  </label>
+                    ></label
+                  >
                   <input
                     id="pt-first-phenomenon"
                     placeholder="e.g. Blood Group A"
                   />
                   <small style="color: var(--muted); font-size: 0.78rem"
-                    >Add more phenomena in the card below after saving.</small
+                    >Add more below after saving.</small
                   >
                 </div>
                 <button
@@ -331,7 +338,6 @@
               <h2>All Protocols</h2>
               <div id="proto-list-container"><p class="empty">Loading…</p></div>
             </div>
-
             <div class="card">
               <h2>Add Protocol</h2>
               <div class="form-row">
@@ -376,7 +382,6 @@
               <h2>All Diagnostic Rules</h2>
               <div id="rules-list-container"><p class="empty">Loading…</p></div>
             </div>
-
             <div class="card">
               <h2>Add Diagnostic Rule</h2>
               <p
@@ -387,8 +392,7 @@
                 "
               >
                 A rule fires when <strong>all</strong> listed PhenomenonType IDs
-                have active observations for the patient, inferring the product
-                concept.
+                have active observations for the patient.
               </p>
               <div class="form-row">
                 <label>Rule Name <span class="required-star">*</span></label>
@@ -419,7 +423,7 @@
       </div>
 
       <!-- ══════════════════════════════════════════════════════
-       PAGE: LOGS  (STAFF ONLY)
+       PAGE: LOGS (staff only)
   ══════════════════════════════════════════════════════ -->
       <div id="page-logs" class="page">
         <h1>
@@ -434,7 +438,6 @@
             <h2>Command Log</h2>
             <div id="command-log-container"><p class="empty">Loading…</p></div>
           </div>
-
           <div class="card">
             <h2>Audit Log</h2>
             <div id="audit-log-container"><p class="empty">Loading…</p></div>
@@ -443,7 +446,6 @@
       </div>
     </main>
 
-    <!-- Scripts in dependency order -->
     <script src="js/api.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/patients.js"></script>
